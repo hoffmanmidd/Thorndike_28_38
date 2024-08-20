@@ -1,0 +1,159 @@
+---
+title: "R4DS Thorndike pages 28 - 38"
+author: "Hoffman"
+format: 
+  revealjs:
+    echo: true
+---
+
+## Thorndike 28-38
+
+In this presentation, we will cover pages 28-38 of Thorndike and Thorndike-Christ (2009). 
+
+First, load the necessary libraries and data.
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+gs4_deauth() # deauthorize Google Sheet so that anyone can access it
+students <- read_sheet("https://docs.google.com/spreadsheets/d/1hPYA-1X5RBlPzlH-tsdnXjM7wN0wq7FF3BmyigUJOPc/edit?usp=sharing")
+``` 
+
+## The "students" dataframe
+```{r}
+students
+```
+
+## Frequency Distribution - Math Scores
+
+First, display the frequency of math scores.
+
+```{r}
+table(students$math)
+```
+
+## Display Table 2-2 vertically
+Note: 31 levels
+```{r}
+table2.2 <- cbind(Freq = table(students$math))
+table2.2
+```
+
+## Fix the lack of zeros
+We want to show that some of the math scores are zero. (For example, no one scored 59 on the math test.)
+```{r}
+# Define 42 levels between 19 & 60
+table.2.2 <- factor(students$math, levels = c(60:19)) 
+
+# Show the table vertically
+table2.2 <- cbind(Freq = table(table.2.2))
+
+# Make this a data frame (It was a vector.)
+table2.2 <- as.data.frame(table2.2)
+
+# Add a second column using the row names (60 - 19)
+table2.2 <- table2.2 |>
+  mutate(table2.2, ScoreX = row.names(table2.2), .before = 1)  # Add ScoreX column
+```
+
+## Our new Table 2-2
+Frequency Distribution of Scores on the Mathemeatics Test for 52 Students
+```{r}
+table2.2
+``` 
+
+## Grouped Frequency Distribution
+As shown on page 31 (one way to approach this)
+```{r}
+# create a vector called "bins", counting by threes
+bins <- seq(17, 62, by=3) 
+# NOTE: Starting at 17 lines up with Thorndike
+
+# Then create a vector called "Interval"
+Interval <- cut(students$math, bins)
+# The "cut()" command divides the range of Table.2.1$Math into intervals and codes the values in x according to which interval they fall.
+
+table(Interval) # Produces a horizontal table
+```
+
+## Table 2-3
+Grouped Frequency Distribution of Scores from 52 Students on a Math Test Using an Interval of 3
+```{r}
+# transform() makes a vertical table like Table.2.3
+table.2.3 <- transform(table(Interval))
+table.2.3
+```
+
+## Table 2-3
+This time with 60 at the top of the table
+```{r}
+arrange(table.2.3, desc(Interval)) 
+```
+
+## Cumulative Frequency Distribution
+page 35
+```{r}
+# Create data frame of Math scores
+# Note: There are much more elegant ways to do this.
+table.2.4 <- data.frame(table.2.3) |>
+  mutate(Cumulative_Frequency = cumsum(Freq)) |>
+  mutate(Cumulative_Percent = round(100*cumsum(Freq)/52))
+``` 
+
+## Table 2-4
+```{r}
+arrange(table.2.4, desc(Interval))
+```
+
+## Histograms
+```{r}
+ggplot(students, aes(x = math, y = after_stat(count))) +
+  geom_histogram(binwidth = 3, color = "black", fill = "grey") + 
+  theme_classic() +
+  labs(x = "Mathematics test scores",
+       y = "Frequency") +
+  scale_x_continuous(breaks = 17 + c(0:15)*3) +
+  scale_y_continuous(breaks = 0 + c(0:6)*2) + 
+  ggtitle("Figure 2-1\nHistogram of 52 mathematics scores")
+```
+
+## Figure 2-1
+```{r, echo=FALSE}
+ggplot(students, aes(x = math, y = after_stat(count))) +
+  geom_histogram(binwidth = 3, color = "black", fill = "grey") + 
+  theme_classic() +
+  labs(x = "Mathematics test scores",
+       y = "Frequency") +
+  scale_x_continuous(breaks = 17 + c(0:15)*3) +
+  scale_y_continuous(breaks = 0 + c(0:6)*2) + 
+  ggtitle("Figure 2-1\nHistogram of 52 mathematics scores")
+```
+
+## Cumulative Frequency Curve
+```{r}
+# Again, this is one way of approaching it. Not super elegant though
+MathByThrees <- data.frame(table.2.4) |>
+  mutate(Threes = 20 + c(0:14)*3) 
+
+# Figure 2-3
+ggplot(MathByThrees, aes(x=Threes, y=Cumulative_Frequency)) +
+  geom_line() +
+  geom_point() +
+  theme_classic() +
+  labs(x = "Math Score",
+       y = "Cumulative frequency") +
+  ggtitle("Figure 2-3\nCumulative frequency curve") +
+  scale_x_continuous(breaks = 18 + c(0:14)*3)
+```
+
+## Figure 2-3
+```{r, echo=FALSE}
+ggplot(MathByThrees, aes(x=Threes, y=Cumulative_Frequency)) +
+  geom_line() +
+  geom_point() +
+  theme_classic() +
+  labs(x = "Math Score",
+       y = "Cumulative frequency") +
+  ggtitle("Figure 2-3\nCumulative frequency curve") +
+  scale_x_continuous(breaks = 18 + c(0:14)*3)
+```

@@ -24,6 +24,12 @@ students <- read_sheet("https://docs.google.com/spreadsheets/d/1hPYA-1X5RBlPzlH-
 students
 ```
 
+## Math scores in the dataframe
+Look at the scores in the Math column and consider how they can be rearranged to give a clearer picture of how the pupils have performed on the math test. The simplest rearrangement is merely to list the scores in order from highest to lowest, as shown in Table 2-2 on page 29.
+
+How do we do this in R?
+
+
 ## Frequency Distribution - Math Scores
 
 First, display the frequency of math scores.
@@ -62,6 +68,9 @@ Frequency Distribution of Scores on the Mathemeatics Test for 52 Students
 table2.2
 ``` 
 
+## Grouping for clarity
+Scores are often grouped into broader categories to further improve the clarity of presentation. We discard some detail in the data to make it easier to grasp the picture  presented by the entire set of scores. In our example, we will group three adjacent scores, so that each grouping interval includes three points of score. The entire range of scores from 19 to 60 is represented by 14 intervals, each of which includes three scores. 
+
 ## Grouped Frequency Distribution
 As shown on page 31 (one way to approach this)
 ```{r}
@@ -85,25 +94,36 @@ table.2.3
 ```
 
 ## Table 2-3
-This time with 60 at the top of the table
+This table with 60 at the top (descending order)
 ```{r}
 arrange(table.2.3, desc(Interval)) 
 ```
 
 ## Cumulative Frequency Distribution
-page 35
+
+A cumulative frequency distribution is easily prepared from the frequency distribution or grouped frequency distribution, as shown in Table 2-4, which presents the cumulative frequency, as well as the frequency in each interval. Each entry in the column labeled "Cumulative Frequency" shows the total number of individuals having a score equal to or less than the highest score in that interval.
+
+## Create data frame
+Note: There are more elegant ways to do this.
+
+This code produces table.2.4 that runs from 17 - 62.
 ```{r}
 # Create data frame of Math scores
-# Note: There are much more elegant ways to do this.
 table.2.4 <- data.frame(table.2.3) |>
   mutate(Cumulative_Frequency = cumsum(Freq)) |>
   mutate(Cumulative_Percent = round(100*cumsum(Freq)/52))
 ``` 
 
+To display this table in descending order, see the code on the next slide. 
+
 ## Table 2-4
 ```{r}
 arrange(table.2.4, desc(Interval))
 ```
+
+## Graphic representation of univariate data.
+
+Univariate data is data that consists of only one variable. The data can be displayed in a variety of ways, including histograms, cumulative frequency curves, and step curves.
 
 ## Histograms
 ```{r}
@@ -157,3 +177,54 @@ ggplot(MathByThrees, aes(x=Threes, y=Cumulative_Frequency)) +
   ggtitle("Figure 2-3\nCumulative frequency curve") +
   scale_x_continuous(breaks = 18 + c(0:14)*3)
 ```
+
+## Step Curve
+Maybe it doesn't make sense to put the data into bins of 3 when we an ogive like Figure 2-3.
+Another way to approach this is to plot an empirical cumulative distribution function (ECDF) or step curve. 
+```{r}
+ggplot(students, aes(x = math)) +
+  stat_ecdf(geom = "step") +
+  theme_classic() +
+  labs(x = "Mathematics test scores",
+       y = "Cumulative frequency") +
+  ggtitle("Figure 2-4\nStep curve of 52 mathematics scores")
+```
+
+## Figure 2-4
+```{r, echo=FALSE}
+ggplot(students, aes(x = math)) +
+  stat_ecdf(geom = "step") +
+  theme_classic() +
+  labs(x = "Mathematics test scores",
+       y = "Cumulative frequency") +
+  ggtitle("Figure 2-4\nStep curve of 52 mathematics scores")
+```
+
+## Cumulative Percent Curve   
+And one last detail: Let's change the code so that we have a cumulative percentage on the y-axis.
+
+```{r}
+# Figure 2-5
+ggplot(students, aes(x = math)) +
+  stat_ecdf(geom = "step") + 
+  #Produce empirical cumulative density function
+  scale_y_continuous(labels = scales::percent) + 
+  #change from proportion to percentage
+  theme_classic() +
+  labs(x = "Math Score",
+       y = "Cumulative percentage") +
+  ggtitle("Cumulative frequency (step curve)") 
+```
+## Figure 2-5
+```{r, echo=FALSE}
+ggplot(students, aes(x = math)) +
+  stat_ecdf(geom = "step") + 
+  #Produce empirical cumulative density function
+  scale_y_continuous(labels = scales::percent) + 
+  #change from proportion to percentage
+  theme_classic() +
+  labs(x = "Math Score",
+       y = "Cumulative Percentage") +
+  ggtitle("Cumulative Percentage (step curve)") 
+```
+
